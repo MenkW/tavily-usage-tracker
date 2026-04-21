@@ -1,0 +1,58 @@
+{
+  "name": "tavily-usage-tracker",
+  "displayName": "Tavily Usage Tracker",
+  "description": "Shows remaining Tavily API credits in the VS Code status bar",
+  "version": "1.0.0",
+  "publisher": "local",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Tavily Usage Tracker",
+      "properties": {
+        "tavilyUsageTracker.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Your Tavily API key (starts with tvly-)",
+          "secret": true
+        },
+        "tavilyUsageTracker.pollIntervalMinutes": {
+          "type": "number",
+          "default": 10,
+          "minimum": 1,
+          "maximum": 60,
+          "description": "How often to refresh usage data (in minutes)"
+        },
+        "tavilyUsageTracker.showBreakdown": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show per-type usage breakdown in the tooltip"
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "tavilyUsageTracker.refresh",
+        "title": "Tavily: Refresh Usage"
+      },
+      {
+        "command": "tavilyUsageTracker.openDashboard",
+        "title": "Tavily: Open Dashboard"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "vscode:prepublish": "npm run compile"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.0"
+  }
+}
