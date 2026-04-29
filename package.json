@@ -2,7 +2,7 @@
   "name": "tavily-usage-tracker",
   "displayName": "Tavily Usage Tracker",
   "description": "Shows remaining Tavily API credits in the VS Code status bar",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "publisher": "local",
   "engines": {
     "vscode": "^1.85.0"
@@ -31,6 +31,17 @@
           "type": "boolean",
           "default": true,
           "description": "Show per-type usage breakdown in the tooltip"
+        },
+        "tavilyUsageTracker.displayMode": {
+          "type": "string",
+          "enum": ["both", "bar", "numbers"],
+          "enumDescriptions": [
+            "Show both the progress bar and the remaining/limit numbers",
+            "Show only the progress bar",
+            "Show only the remaining/limit numbers"
+          ],
+          "default": "both",
+          "description": "What to display in the status bar label"
         }
       }
     },

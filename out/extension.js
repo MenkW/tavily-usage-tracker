@@ -90,6 +90,11 @@ function getThemeColor(used, limit) {
 function formatNumber(n) {
     return n.toLocaleString('en-US');
 }
+function buildBar(used, limit, segments = 10) {
+    const filled = limit > 0 ? Math.round((used / limit) * segments) : 0;
+    const empty = segments - filled;
+    return '█'.repeat(filled) + '░'.repeat(empty);
+}
 // ── Extension ────────────────────────────────────────────────────────────────
 let statusBarItem;
 let pollTimer;
@@ -136,6 +141,7 @@ async function refreshUsage(context) {
     const config = vscode.workspace.getConfiguration('tavilyUsageTracker');
     const apiKey = config.get('apiKey', '').trim();
     const showBreakdown = config.get('showBreakdown', true);
+    const displayMode = config.get('displayMode', 'both');
     if (!apiKey) {
         showNotConfigured();
         return;
@@ -144,7 +150,7 @@ async function refreshUsage(context) {
     try {
         const data = await fetchUsage(apiKey);
         lastData = data;
-        renderStatusBar(data, showBreakdown);
+        renderStatusBar(data, showBreakdown, displayMode);
     }
     catch (err) {
         showError(err instanceof Error ? err.message : String(err));
@@ -170,14 +176,26 @@ function showError(message) {
     statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.errorBackground');
     statusBarItem.show();
 }
-function renderStatusBar(data, showBreakdown) {
+function renderStatusBar(data, showBreakdown, displayMode) {
     const { account } = data;
     const used = account.plan_usage;
     const limit = account.plan_limit ?? 0;
     const remaining = Math.max(0, limit - used);
     const pct = limit > 0 ? Math.round((used / limit) * 100) : 0;
-    // Status bar label
-    statusBarItem.text = `$(globe) Tavily ${formatNumber(remaining)}/${formatNumber(limit)}`;
+    // Build status bar label parts
+    const bar = buildBar(used, limit);
+    const numbers = `${formatNumber(remaining)}/${formatNumber(limit)}`;
+    let label;
+    if (displayMode === 'bar') {
+        label = `$(globe) Tavily ${bar}`;
+    }
+    else if (displayMode === 'numbers') {
+        label = `$(globe) Tavily ${numbers}`;
+    }
+    else {
+        label = `$(globe) Tavily ${bar} ${numbers}`;
+    }
+    statusBarItem.text = label;
     statusBarItem.backgroundColor = limit > 0 ? getThemeColor(used, limit) : undefined;
     // Tooltip
     const md = new vscode.MarkdownString();
