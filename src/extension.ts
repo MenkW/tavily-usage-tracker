@@ -68,6 +68,33 @@ function fetchUsage(apiKey: string): Promise<TavilyUsageResponse> {
   });
 }
 
+function fetchRaw(apiKey: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: 'api.tavily.com',
+      path: '/usage',
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', (chunk: Buffer) => (data += chunk.toString()));
+      res.on('end', () => resolve(data));
+    });
+
+    req.on('error', (err: Error) => reject(err));
+    req.setTimeout(10000, () => {
+      req.destroy();
+      reject(new Error('Tavily API request timed out'));
+    });
+    req.end();
+  });
+}
+
 function getThemeColor(used: number, limit: number): vscode.ThemeColor {
   const pct = used / limit;
   if (pct >= 0.9) {
@@ -94,8 +121,13 @@ function buildBar(used: number, limit: number, segments: number = 10): string {
 let statusBarItem: vscode.StatusBarItem;
 let pollTimer: ReturnType<typeof setInterval> | undefined;
 let lastData: TavilyUsageResponse | undefined;
+let outputChannel: vscode.OutputChannel;
 
 export function activate(context: vscode.ExtensionContext): void {
+  // Output channel for diagnostics
+  outputChannel = vscode.window.createOutputChannel('Tavily Usage Tracker');
+  context.subscriptions.push(outputChannel);
+
   // Status bar item — placed left of the notifications area (right side)
   statusBarItem = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Right,
@@ -114,6 +146,12 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     vscode.commands.registerCommand('tavilyUsageTracker.openDashboard', () => {
       vscode.env.openExternal(vscode.Uri.parse('https://app.tavily.com'));
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('tavilyUsageTracker.showLog', () => {
+      outputChannel.show();
     })
   );
 
@@ -169,11 +207,23 @@ async function refreshUsage(context: vscode.ExtensionContext): Promise<void> {
   showLoading();
 
   try {
-    const data = await fetchUsage(apiKey);
+    // Fetch raw response first so we can log it for diagnostics
+    const raw = await fetchRaw(apiKey);
+    const timestamp = new Date().toLocaleString();
+    outputChannel.appendLine(`\n[${timestamp}] Raw API response from api.tavily.com/usage:`);
+    try {
+      outputChannel.appendLine(JSON.stringify(JSON.parse(raw), null, 2));
+    } catch {
+      outputChannel.appendLine(raw);
+    }
+
+    const data = JSON.parse(raw) as TavilyUsageResponse;
     lastData = data;
     renderStatusBar(data, showBreakdown, displayMode);
   } catch (err) {
-    showError(err instanceof Error ? err.message : String(err));
+    const message = err instanceof Error ? err.message : String(err);
+    outputChannel.appendLine(`\n[${new Date().toLocaleString()}] Error: ${message}`);
+    showError(message);
   }
 }
 
@@ -213,17 +263,18 @@ function renderStatusBar(
 ): void {
   const { key, account } = data;
 
-  // On paid plans key.limit is set → use per-key figures (matches the dashboard).
-  // On the free plan key.limit is null (no per-key cap) → fall back to
-  // account-level figures which are what the Tavily dashboard actually shows.
+  // On paid plans key.limit is set → use per-key figures.
+  // On the free plan key.limit is null → fall back to account-level figures
+  // which is what the Tavily dashboard shows.
   const used = key.limit !== null ? key.usage : account.plan_usage;
   const limit = key.limit ?? account.plan_limit ?? 0;
   const remaining = Math.max(0, limit - used);
   const pct = limit > 0 ? Math.round((used / limit) * 100) : 0;
 
   // Build status bar label parts
+  // Show used/limit (matching dashboard convention), not remaining/limit
   const bar = buildBar(used, limit);
-  const numbers = `${formatNumber(remaining)}/${formatNumber(limit)}`;
+  const numbers = `${formatNumber(used)}/${formatNumber(limit)}`;
 
   let label: string;
   if (displayMode === 'bar') {
@@ -271,7 +322,8 @@ function renderStatusBar(
   md.appendMarkdown(`---\n\n`);
   md.appendMarkdown(
     `[$(refresh) Refresh now](command:tavilyUsageTracker.refresh)` +
-      `  ·  [$(link-external) Dashboard](command:tavilyUsageTracker.openDashboard)`
+      `  ·  [$(link-external) Dashboard](command:tavilyUsageTracker.openDashboard)` +
+      `  ·  [$(output) Show log](command:tavilyUsageTracker.showLog)`
   );
 
   statusBarItem.tooltip = md;

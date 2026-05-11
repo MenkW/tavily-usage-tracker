@@ -27,7 +27,7 @@ Install directly from the pre-built VSIX:
 
 1. In VS Code open **Extensions** (`Ctrl+Shift+X`)
 2. Click the `…` menu → **Install from VSIX…**
-3. Select `tavily-usage-tracker-1.1.2.vsix`
+3. Select `tavily-usage-tracker-1.1.3.vsix`
 4. Open **Settings** (`Ctrl+,`), search `tavilyUsageTracker`, and paste your API key
 
 ## Configuration
@@ -57,6 +57,12 @@ vsce package
 ---
 
 ## Changelog
+
+### v1.1.3 — 2026-05-11
+
+- **Bugfix:** Status bar was displaying `remaining/limit` (e.g. `717/1,000`) which is the inverse of what the Tavily dashboard shows. Now displays `used/limit` (e.g. `675/1,000`) to match dashboard convention. Remaining credits are still shown in the tooltip.
+- **New:** Diagnostic Output channel — every API refresh logs the full raw JSON response from `api.tavily.com/usage`. Open it via **Tavily: Show Diagnostic Log** in the command palette, or click **Show log** in the status bar tooltip. Useful for verifying the numbers the API actually returns.
+- **New:** **Show log** link added to the status bar tooltip.
 
 ### v1.1.2 — 2026-05-11
 
