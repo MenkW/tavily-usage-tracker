@@ -27,7 +27,7 @@ Install directly from the pre-built VSIX:
 
 1. In VS Code open **Extensions** (`Ctrl+Shift+X`)
 2. Click the `…` menu → **Install from VSIX…**
-3. Select `tavily-usage-tracker-1.1.0.vsix`
+3. Select `tavily-usage-tracker-1.1.1.vsix`
 4. Open **Settings** (`Ctrl+,`), search `tavilyUsageTracker`, and paste your API key
 
 ## Configuration
@@ -57,6 +57,11 @@ vsce package
 ---
 
 ## Changelog
+
+### v1.1.1 — 2026-05-11
+
+- **Bugfix:** Extension was reading `account.plan_usage` / `account.plan_limit` (account-wide totals across all API keys) instead of `key.usage` / `key.limit` (the per-key figures the Tavily dashboard shows). Numbers now match the dashboard exactly.
+- Breakdown tooltip section now correctly shows per-type usage for the active key rather than the whole account.
 
 ### v1.1.0 — 2026-04-29
 

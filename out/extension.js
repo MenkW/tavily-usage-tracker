@@ -177,9 +177,12 @@ function showError(message) {
     statusBarItem.show();
 }
 function renderStatusBar(data, showBreakdown, displayMode) {
-    const { account } = data;
-    const used = account.plan_usage;
-    const limit = account.plan_limit ?? 0;
+    const { key, account } = data;
+    // Use key-level figures — these match what the Tavily dashboard shows.
+    // account.plan_usage / account.plan_limit reflect the whole account (all keys
+    // combined) which is misleading on single-key free plans.
+    const used = key.usage;
+    const limit = key.limit ?? 0;
     const remaining = Math.max(0, limit - used);
     const pct = limit > 0 ? Math.round((used / limit) * 100) : 0;
     // Build status bar label parts
@@ -207,14 +210,14 @@ function renderStatusBar(data, showBreakdown, displayMode) {
     md.appendMarkdown(`**Remaining:** ${formatNumber(remaining)}\n\n`);
     if (showBreakdown) {
         md.appendMarkdown(`---\n\n`);
-        md.appendMarkdown(`**Breakdown**\n\n`);
+        md.appendMarkdown(`**Breakdown (this key)**\n\n`);
         md.appendMarkdown(`| Type | Used |\n`);
         md.appendMarkdown(`|---|---|\n`);
-        md.appendMarkdown(`| Search | ${formatNumber(account.search_usage)} |\n`);
-        md.appendMarkdown(`| Extract | ${formatNumber(account.extract_usage)} |\n`);
-        md.appendMarkdown(`| Crawl | ${formatNumber(account.crawl_usage)} |\n`);
-        md.appendMarkdown(`| Map | ${formatNumber(account.map_usage)} |\n`);
-        md.appendMarkdown(`| Research | ${formatNumber(account.research_usage)} |\n`);
+        md.appendMarkdown(`| Search | ${formatNumber(key.search_usage)} |\n`);
+        md.appendMarkdown(`| Extract | ${formatNumber(key.extract_usage)} |\n`);
+        md.appendMarkdown(`| Crawl | ${formatNumber(key.crawl_usage)} |\n`);
+        md.appendMarkdown(`| Map | ${formatNumber(key.map_usage)} |\n`);
+        md.appendMarkdown(`| Research | ${formatNumber(key.research_usage)} |\n`);
         if (account.paygo_usage > 0) {
             md.appendMarkdown(`| Pay-as-you-go | ${formatNumber(account.paygo_usage)} |\n`);
         }
