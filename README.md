@@ -27,7 +27,7 @@ Install directly from the pre-built VSIX:
 
 1. In VS Code open **Extensions** (`Ctrl+Shift+X`)
 2. Click the `…` menu → **Install from VSIX…**
-3. Select `tavily-usage-tracker-1.1.1.vsix`
+3. Select `tavily-usage-tracker-1.1.2.vsix`
 4. Open **Settings** (`Ctrl+,`), search `tavilyUsageTracker`, and paste your API key
 
 ## Configuration
@@ -58,10 +58,14 @@ vsce package
 
 ## Changelog
 
+### v1.1.2 — 2026-05-11
+
+- **Bugfix:** Reverted incorrect assumption from v1.1.1. On the free plan `key.limit` is `null` (no per-key cap), causing `key.usage / key.limit` to render as 0/0. The extension now auto-detects the plan type: if `key.limit` is set (paid plan) it uses per-key figures; otherwise it falls back to `account.plan_usage / account.plan_limit` which is what the Tavily dashboard shows on the free plan.
+- Tooltip breakdown scope label now reads **"this key"** (paid) or **"account"** (free) accordingly.
+
 ### v1.1.1 — 2026-05-11
 
-- **Bugfix:** Extension was reading `account.plan_usage` / `account.plan_limit` (account-wide totals across all API keys) instead of `key.usage` / `key.limit` (the per-key figures the Tavily dashboard shows). Numbers now match the dashboard exactly.
-- Breakdown tooltip section now correctly shows per-type usage for the active key rather than the whole account.
+- **Bugfix (reverted in v1.1.2):** Attempted to switch to `key.usage / key.limit` to match the dashboard. This worked for paid plans but broke the free plan where `key.limit` is `null`.
 
 ### v1.1.0 — 2026-04-29
 

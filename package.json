@@ -2,7 +2,7 @@
   "name": "tavily-usage-tracker",
   "displayName": "Tavily Usage Tracker",
   "description": "Shows remaining Tavily API credits in the VS Code status bar",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "publisher": "local",
   "engines": {
     "vscode": "^1.85.0"

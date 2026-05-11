@@ -178,11 +178,11 @@ function showError(message) {
 }
 function renderStatusBar(data, showBreakdown, displayMode) {
     const { key, account } = data;
-    // Use key-level figures — these match what the Tavily dashboard shows.
-    // account.plan_usage / account.plan_limit reflect the whole account (all keys
-    // combined) which is misleading on single-key free plans.
-    const used = key.usage;
-    const limit = key.limit ?? 0;
+    // On paid plans key.limit is set → use per-key figures (matches the dashboard).
+    // On the free plan key.limit is null (no per-key cap) → fall back to
+    // account-level figures which are what the Tavily dashboard actually shows.
+    const used = key.limit !== null ? key.usage : account.plan_usage;
+    const limit = key.limit ?? account.plan_limit ?? 0;
     const remaining = Math.max(0, limit - used);
     const pct = limit > 0 ? Math.round((used / limit) * 100) : 0;
     // Build status bar label parts
@@ -209,15 +209,17 @@ function renderStatusBar(data, showBreakdown, displayMode) {
     md.appendMarkdown(`**Credits used:** ${formatNumber(used)} / ${formatNumber(limit)} (${pct}%)\n\n`);
     md.appendMarkdown(`**Remaining:** ${formatNumber(remaining)}\n\n`);
     if (showBreakdown) {
+        const breakdown = key.limit !== null ? key : account;
+        const scope = key.limit !== null ? 'this key' : 'account';
         md.appendMarkdown(`---\n\n`);
-        md.appendMarkdown(`**Breakdown (this key)**\n\n`);
+        md.appendMarkdown(`**Breakdown (${scope})**\n\n`);
         md.appendMarkdown(`| Type | Used |\n`);
         md.appendMarkdown(`|---|---|\n`);
-        md.appendMarkdown(`| Search | ${formatNumber(key.search_usage)} |\n`);
-        md.appendMarkdown(`| Extract | ${formatNumber(key.extract_usage)} |\n`);
-        md.appendMarkdown(`| Crawl | ${formatNumber(key.crawl_usage)} |\n`);
-        md.appendMarkdown(`| Map | ${formatNumber(key.map_usage)} |\n`);
-        md.appendMarkdown(`| Research | ${formatNumber(key.research_usage)} |\n`);
+        md.appendMarkdown(`| Search | ${formatNumber(breakdown.search_usage)} |\n`);
+        md.appendMarkdown(`| Extract | ${formatNumber(breakdown.extract_usage)} |\n`);
+        md.appendMarkdown(`| Crawl | ${formatNumber(breakdown.crawl_usage)} |\n`);
+        md.appendMarkdown(`| Map | ${formatNumber(breakdown.map_usage)} |\n`);
+        md.appendMarkdown(`| Research | ${formatNumber(breakdown.research_usage)} |\n`);
         if (account.paygo_usage > 0) {
             md.appendMarkdown(`| Pay-as-you-go | ${formatNumber(account.paygo_usage)} |\n`);
         }
