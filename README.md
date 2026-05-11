@@ -27,7 +27,7 @@ Install directly from the pre-built VSIX:
 
 1. In VS Code open **Extensions** (`Ctrl+Shift+X`)
 2. Click the `…` menu → **Install from VSIX…**
-3. Select `tavily-usage-tracker-1.1.3.vsix`
+3. Select `tavily-usage-tracker-1.1.4.vsix`
 4. Open **Settings** (`Ctrl+,`), search `tavilyUsageTracker`, and paste your API key
 
 ## Configuration
@@ -37,7 +37,7 @@ Install directly from the pre-built VSIX:
 | `tavilyUsageTracker.apiKey` | `""` | Your Tavily API key (starts with `tvly-`) |
 | `tavilyUsageTracker.pollIntervalMinutes` | `10` | Refresh interval in minutes (1–60) |
 | `tavilyUsageTracker.showBreakdown` | `true` | Show per-type breakdown in tooltip |
-| `tavilyUsageTracker.displayMode` | `"both"` | Status bar display: `"both"`, `"bar"`, or `"numbers"` |
+| `tavilyUsageTracker.diagnosticLogging` | `false` | Log raw API responses to the output channel for troubleshooting |
 
 ## Development
 
@@ -57,6 +57,10 @@ vsce package
 ---
 
 ## Changelog
+
+### v1.1.4 — 2026-05-11
+
+- **New:** `tavilyUsageTracker.diagnosticLogging` setting (default: `false`). When enabled, the full raw JSON from `api.tavily.com/usage` is written to the **Tavily Usage Tracker** output channel on every refresh. Previously this was always on; it is now opt-in.
 
 ### v1.1.3 — 2026-05-11
 

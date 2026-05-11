@@ -173,6 +173,7 @@ async function refreshUsage(context) {
     const apiKey = config.get('apiKey', '').trim();
     const showBreakdown = config.get('showBreakdown', true);
     const displayMode = config.get('displayMode', 'both');
+    const diagnosticLogging = config.get('diagnosticLogging', false);
     if (!apiKey) {
         showNotConfigured();
         return;
@@ -181,13 +182,15 @@ async function refreshUsage(context) {
     try {
         // Fetch raw response first so we can log it for diagnostics
         const raw = await fetchRaw(apiKey);
-        const timestamp = new Date().toLocaleString();
-        outputChannel.appendLine(`\n[${timestamp}] Raw API response from api.tavily.com/usage:`);
-        try {
-            outputChannel.appendLine(JSON.stringify(JSON.parse(raw), null, 2));
-        }
-        catch {
-            outputChannel.appendLine(raw);
+        if (diagnosticLogging) {
+            const timestamp = new Date().toLocaleString();
+            outputChannel.appendLine(`\n[${timestamp}] Raw API response from api.tavily.com/usage:`);
+            try {
+                outputChannel.appendLine(JSON.stringify(JSON.parse(raw), null, 2));
+            }
+            catch {
+                outputChannel.appendLine(raw);
+            }
         }
         const data = JSON.parse(raw);
         lastData = data;
@@ -195,7 +198,9 @@ async function refreshUsage(context) {
     }
     catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        outputChannel.appendLine(`\n[${new Date().toLocaleString()}] Error: ${message}`);
+        if (diagnosticLogging) {
+            outputChannel.appendLine(`\n[${new Date().toLocaleString()}] Error: ${message}`);
+        }
         showError(message);
     }
 }

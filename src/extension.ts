@@ -198,6 +198,7 @@ async function refreshUsage(context: vscode.ExtensionContext): Promise<void> {
   const apiKey = config.get<string>('apiKey', '').trim();
   const showBreakdown = config.get<boolean>('showBreakdown', true);
   const displayMode = config.get<string>('displayMode', 'both');
+  const diagnosticLogging = config.get<boolean>('diagnosticLogging', false);
 
   if (!apiKey) {
     showNotConfigured();
@@ -209,12 +210,14 @@ async function refreshUsage(context: vscode.ExtensionContext): Promise<void> {
   try {
     // Fetch raw response first so we can log it for diagnostics
     const raw = await fetchRaw(apiKey);
-    const timestamp = new Date().toLocaleString();
-    outputChannel.appendLine(`\n[${timestamp}] Raw API response from api.tavily.com/usage:`);
-    try {
-      outputChannel.appendLine(JSON.stringify(JSON.parse(raw), null, 2));
-    } catch {
-      outputChannel.appendLine(raw);
+    if (diagnosticLogging) {
+      const timestamp = new Date().toLocaleString();
+      outputChannel.appendLine(`\n[${timestamp}] Raw API response from api.tavily.com/usage:`);
+      try {
+        outputChannel.appendLine(JSON.stringify(JSON.parse(raw), null, 2));
+      } catch {
+        outputChannel.appendLine(raw);
+      }
     }
 
     const data = JSON.parse(raw) as TavilyUsageResponse;
@@ -222,7 +225,9 @@ async function refreshUsage(context: vscode.ExtensionContext): Promise<void> {
     renderStatusBar(data, showBreakdown, displayMode);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    outputChannel.appendLine(`\n[${new Date().toLocaleString()}] Error: ${message}`);
+    if (diagnosticLogging) {
+      outputChannel.appendLine(`\n[${new Date().toLocaleString()}] Error: ${message}`);
+    }
     showError(message);
   }
 }

@@ -2,7 +2,7 @@
   "name": "tavily-usage-tracker",
   "displayName": "Tavily Usage Tracker",
   "description": "Shows remaining Tavily API credits in the VS Code status bar",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "publisher": "local",
   "engines": {
     "vscode": "^1.85.0"
@@ -42,6 +42,11 @@
           ],
           "default": "both",
           "description": "What to display in the status bar label"
+        },
+        "tavilyUsageTracker.diagnosticLogging": {
+          "type": "boolean",
+          "default": false,
+          "description": "Log the raw API response to the Tavily Usage Tracker output channel on every refresh (useful for troubleshooting)"
         }
       }
     },
